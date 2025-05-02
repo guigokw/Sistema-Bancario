@@ -1,11 +1,14 @@
-public class Conta implements ExibicaoDeDetalhes {
-    protected Cliente proprietarioConta;
-    protected String numeroConta;
-    protected double saldoConta;
-    protected StatusConta statusConta;
-    protected TipoConta tipoConta;
+import java.time.LocalDate;
 
-    public Conta(Cliente proprietarioConta, String numeroConta, double saldoConta, StatusConta statusConta, TipoConta tipoConta) throws IllegalArgumentException {
+public class Conta implements ExibicaoDeDetalhes {
+    private Cliente proprietarioConta;
+    private String numeroConta;
+    private double saldoConta;
+    private StatusConta statusConta;
+    private TipoConta tipoConta;
+    private LocalDate dataCriacaoDaConta;
+
+    public Conta(Cliente proprietarioConta, String numeroConta, double saldoConta, StatusConta statusConta, TipoConta tipoConta, LocalDate dataCriacaoDaConta) throws IllegalArgumentException {
         if (numeroConta.length() != 4 || saldoConta < 0) {
             throw new IllegalArgumentException("nao foi possivel cadastrar conta pois os dados estao invalidos");
         } else {
@@ -14,6 +17,8 @@ public class Conta implements ExibicaoDeDetalhes {
             this.saldoConta = saldoConta;
             this.statusConta = statusConta;
             this.tipoConta = tipoConta;
+            this.dataCriacaoDaConta = LocalDate.now();
+
         }
     }
 
@@ -62,6 +67,14 @@ public class Conta implements ExibicaoDeDetalhes {
 
     public void setTipoConta(TipoConta tipoConta) {
         this.tipoConta = tipoConta;
+    }
+
+    public LocalDate getDataCriacaoDaConta() {
+        return dataCriacaoDaConta;
+    }
+
+    public void setDataCriacaoDaConta(LocalDate dataCriacaoDaConta) {
+        this.dataCriacaoDaConta = dataCriacaoDaConta;
     }
 
     @Override
