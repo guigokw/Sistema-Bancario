@@ -1,16 +1,73 @@
 import java.util.*;
 import java.util.HashSet;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Banco {
 
+    List<Funcionario> listaDeFuncionarios = new ArrayList<>();
+    Set<Integer> idDoFuncioanrio = new HashSet<>();
     List<Cliente> clientesNoBanco = new ArrayList<>();
     Set<Integer> idDoCliente = new HashSet<>();
     Map<Integer, CaixaEletronico> caixasNoBanco = new HashMap<>();
     Set<Integer> numeroDoCaixa = new HashSet<>();
     Scanner input = new Scanner(System.in);
 
-    public void adicionarCliente(Cliente cliente) throws IdDoClienteDuplicadoException {
+    public void adicionarFuncionario() {
+        System.out.print("qual o id do funcionario?");
+        int idFuncionario = input.nextInt();
+
+        input.nextLine();
+
+        System.out.print("qual o nome do funcionario?");
+        String nomeFuncionario = input.nextLine();
+
+        System.out.print("qual o salario do funcionario?");
+        double salarioFuncionario = input.nextDouble();
+
+        Funcionario funcionario = new Funcionario(idFuncionario, nomeFuncionario, salarioFuncionario);
+
+        if (!idDoFuncioanrio.add(funcionario.getIdPessoa())) {
+            throw new FuncionarioDuplicadoException("nao foi possivel adicionar o funcionario pois o id esta duplicado");
+        } else {
+            listaDeFuncionarios.add(funcionario);
+            System.out.println("funcionario " +funcionario.getNomePessoa()+ " adicionado a lista de funcionarios do banco");
+        }
+    }
+
+    public void removerFuncionario() {
+        System.out.print("qual o id do funcioanrio que vc deseja remover?");
+        int id = input.nextInt();
+
+        Funcionario funcionario = listaDeFuncionarios.stream()
+                .filter(a -> a.getIdPessoa() == id)
+                .findFirst()
+                .orElseThrow(() -> new FuncionarioNaoEncontradoException("nao foi possivel remover o funcioanrio pois ele nao foi encontrado"));
+
+        listaDeFuncionarios.remove(funcionario);
+        System.out.println("funcionario " +funcionario.getNomePessoa()+ " removido da lista de funcionarios do banco");
+    }
+
+    public void adicionarCliente() throws IdDoClienteDuplicadoException {
+        System.out.print("qual o id do cliente?");
+        int idCliente = input.nextInt();
+
+        input.nextLine();
+
+        System.out.print("qual o nome do cliente?");
+        String nomeCliente = input.nextLine();
+
+        System.out.print("qual o endereco do cliente?");
+        String enderecoCliente = input.nextLine();
+
+        System.out.print("qual a data de nascimento do cliente?");
+        String dataNascimento = input.nextLine();
+
+        DateTimeFormatter formatado = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate dataNasciemntoCliente = LocalDate.parse(dataNascimento, formatado);
+
+        Cliente cliente = new Cliente(idCliente, nomeCliente, enderecoCliente, dataNasciemntoCliente);
+
         if (!idDoCliente.add(cliente.getIdCliente())) {
             throw new IdDoClienteDuplicadoException("nao foi possivel adicionar o cliente ao banco pois o id esta duplicado");
         } else {
@@ -19,7 +76,15 @@ public class Banco {
         }
     }
 
-    public void removerCliente(Cliente cliente) {
+    public void removerCliente() throws ClienteNaoEncontradoException {
+        System.out.print("qual o id do cliente que vc deseja remover?");
+        int id = input.nextInt();
+
+        Cliente cliente = clientesNoBanco.stream()
+                        .filter(a -> a.getIdCliente() == id)
+                                .findFirst()
+                                        .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel remover o cliente pois o id nao foi encontrado?"));
+
         clientesNoBanco.remove(cliente);
         System.out.println("cliente " +cliente.getNomeCliente()+ " removido do banco");
     }
@@ -148,7 +213,15 @@ public class Banco {
         }
     }
 
-    public void adicionarCaixaEletronico(CaixaEletronico caixa) throws CaixaDuplicadoException {
+    public void adicionarCaixaEletronico() throws CaixaDuplicadoException, IllegalArgumentException {
+        System.out.print("qual o numero do caixa?");
+        int numeroCaixa = input.nextInt();
+
+        System.out.print("qual o saldo de dinheiro no caixa eletronico?");
+        double dinheiroNoCaixa = input.nextDouble();
+
+        CaixaEletronico caixa = new CaixaEletronico(numeroCaixa, dinheiroNoCaixa);
+
         if (!numeroDoCaixa.add(caixa.getNumeroCaixa())) {
             throw new CaixaDuplicadoException("nao foi possivel adicionar o caixa eletronico ao banco pois o numero do esta duplicado");
         } else {
@@ -157,7 +230,15 @@ public class Banco {
         }
     }
 
-    public void removerCaixaEletronico(CaixaEletronico caixa) {
+    public void removerCaixaEletronico() throws CaixaEletronicoNaoEncontradoException {
+        System.out.print("qual o numero do caixa eletronico que vc deseja remover do sistema do banco");
+        int numero = input.nextInt();
+
+        CaixaEletronico caixa = caixasNoBanco.values().stream()
+                        .filter(a -> a.getNumeroCaixa() == numero)
+                                .findFirst()
+                                        .orElseThrow(() -> new CaixaEletronicoNaoEncontradoException("nao foi possivel remover o caixa eletronico pois o numero do caixa nao foi encontardo"));
+
         caixasNoBanco.remove(caixa.getNumeroCaixa(), caixa);
         System.out.println("caixa numero " +caixa.getNumeroCaixa()+ " removido do banco");
     }

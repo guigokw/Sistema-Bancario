@@ -1,6 +1,8 @@
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Scanner;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class CaixaEletronico {
     private int numeroCaixa;
@@ -8,6 +10,7 @@ public class CaixaEletronico {
 
     Scanner input = new Scanner(System.in);
     Banco banco = new Banco();
+    Map<TipoOperacao, Conta> historicoDeOperacoes = new LinkedHashMap<>();
 
     public CaixaEletronico(int numeroCaixa, double dinheiroNoCaixa) throws IllegalArgumentException {
         if (dinheiroNoCaixa < 0 || numeroCaixa < 0) {
@@ -34,79 +37,250 @@ public class CaixaEletronico {
         this.dinheiroNoCaixa = dinheiroNoCaixa;
     }
 
+
     public void realizarSaque() throws ClienteNaoEncontradoException, ContaNaoEncontradaException, SaqueInvalidoException {
-        System.out.print("qual o id do cliente que deseja realizar um saque");
-        int id = input.nextInt();
-
-        input.nextLine();
-
-        Cliente cliente = banco.clientesNoBanco.stream()
-                        .filter(a -> a.getIdCliente() == id)
-                                .findFirst()
-                                        .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel realizar o saque pois o id do cliente nao foi encontrado"));
-
-
-        System.out.print("qual o numero da conta que vc deseja realizar um saque?");
-        String numero = input.nextLine();
-
-        Conta conta = cliente.contasDoCliente.values().stream()
-                .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
-                .filter(a -> a.getProprietarioConta().getNomeCliente().equalsIgnoreCase(cliente.getNomeCliente()))
-                .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA || a.getStatusConta() != StatusConta.ENCERRADA)
-                .findFirst()
-                .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel realizar o saque pois o numero da conta nao foi encontrado |OU| cliente fornecido nao corresponde a essa conta" +
-                        "|OU| a conta esta bloqueada ou encerrada"));
-
-        System.out.print("quanto o valor que vc deseja sacar?");
-        double valor = input.nextDouble();
-
-        if (valor > conta.getSaldoConta()) {
-            throw new SaqueInvalidoException("nao foi possivel realizar o saque pois nao há saldo suficiente");
-        } else if (valor < 0) {
-            throw new SaqueInvalidoException("nao foi possivel realizar o saque pois o valor registrado para retiro esta invalido");
+        if (banco.caixasNoBanco.isEmpty()) {
+            System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
         } else {
-            conta.setSaldoConta(- valor);
-            System.out.println("saque de R$:" +valor+ " da conta de " +conta.getProprietarioConta().getNomeCliente()+ " realizado");
+            System.out.print("qual o id do cliente que deseja realizar um saque");
+            int id = input.nextInt();
+
+            input.nextLine();
+
+            Cliente cliente = banco.clientesNoBanco.stream()
+                    .filter(a -> a.getIdCliente() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel realizar o saque pois o id do cliente nao foi encontrado"));
+
+
+            System.out.print("qual o numero da conta que vc deseja realizar um saque?");
+            String numero = input.nextLine();
+
+            Conta conta = cliente.contasDoCliente.values().stream()
+                    .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
+                    .filter(a -> a.getProprietarioConta().getIdCliente() == id)
+                    .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA || a.getStatusConta() != StatusConta.ENCERRADA)
+                    .findFirst()
+                    .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel realizar o saque pois o numero da conta nao foi encontrado |OU| cliente fornecido nao corresponde a essa conta" +
+                            "|OU| a conta esta bloqueada ou encerrada"));
+
+            System.out.print("quanto o valor que vc deseja sacar?");
+            double valor = input.nextDouble();
+
+            if (valor > conta.getSaldoConta()) {
+                throw new SaqueInvalidoException("nao foi possivel realizar o saque pois nao há saldo suficiente");
+            } else if (valor < 0) {
+                throw new SaqueInvalidoException("nao foi possivel realizar o saque pois o valor registrado para retiro esta invalido");
+            } else if (valor > this.dinheiroNoCaixa) {
+                throw new SaqueInvalidoException("não foi possivel realizar o saque pois nao há saldo suficiente no caixa bancario, por favor faça a operacao em outro caixa");
+            } else {
+                conta.setSaldoConta(-valor);
+                setDinheiroNoCaixa(-valor);
+                historicoDeOperacoes.put(TipoOperacao.SAQUE, conta);
+                System.out.println("saque de R$:" + valor + " da conta de " + conta.getProprietarioConta().getNomeCliente() + " realizado");
+            }
         }
     }
 
-    public void consultarSaldo() {
-        System.out.print("qual o id do cliente que deseja realizar um saque");
-        int id = input.nextInt();
-
-        input.nextLine();
-
-        Cliente cliente = banco.clientesNoBanco.stream()
-                .filter(a -> a.getIdCliente() == id)
-                .findFirst()
-                .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel consultar o saldo pois o id do cliente nao foi encontrado"));
-
-
-        System.out.print("qual o numero da conta que vc deseja consultar saldo?");
-        String numero = input.nextLine();
-
-        Conta conta = cliente.contasDoCliente.values().stream()
-                .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
-                .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA || a.getStatusConta() != StatusConta.ENCERRADA)
-                .findFirst()
-                .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel consultar saldo pois o numero da conta não foi encontrado |OU| a conta esta bloqueada ou encerrada"));
-
-        
-        if (conta.getTipoConta() == TipoConta.POUPANCA) {
-            double saldoAtual = 0;
-            LocalDate dataLocal = LocalDate.now();
-            Month mes = conta.getDataCriacaoDaConta().getMonth();
-            Month mesAtual = dataLocal.getMonth();
-
-            if (mes != mesAtual) {
-                saldoAtual = conta.getSaldoConta() * 0.5;
-                mes = mesAtual;
-                System.out.println("SALDO DA CONTA: " +saldoAtual);
-            } else {
-                System.out.println("SALDO DA CONTA " +conta.getSaldoConta());
-            }
+    public void realizarDeposito() throws ClienteNaoEncontradoException, ContaNaoEncontradaException, IllegalArgumentException {
+        if (banco.caixasNoBanco.isEmpty()) {
+            System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
         } else {
-            System.out.println("SALDO DA CONTA " +conta.getSaldoConta());
+            System.out.print("qual o id do cliente que deseja realizar o deposito?");
+            int id = input.nextInt();
+
+            input.nextLine();
+
+            Cliente cliente = banco.clientesNoBanco.stream()
+                    .filter(a -> a.getIdCliente() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel realizar o deposito pois o id do cliente nao foi encontrado"));
+
+            System.out.print("qual o numero da conta que vc deseja realizar deposito");
+            String numero = input.nextLine();
+
+            Conta conta = cliente.contasDoCliente.values().stream()
+                    .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
+                    .filter(a -> a.getProprietarioConta().getIdCliente() == cliente.getIdCliente())
+                    .filter(a -> a.getStatusConta() != StatusConta.ENCERRADA || a.getStatusConta() != StatusConta.BLOQUEADA)
+                    .findFirst()
+                    .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel realizar o deposito pois nao foi encontrado o numero da conta |OU|" +
+                            "o cliente fornecido nao corresponde a essa conta" +
+                            "|OU| a conta esta bloqueada ou encerrada"));
+
+            System.out.print("qual o valor que vc deseja depositar?");
+            double valor = input.nextDouble();
+
+            if (valor < 0) {
+                throw new IllegalArgumentException("nao foi possivel realizar o deposito pois o valor inserido esta invalido");
+            } else {
+                conta.setSaldoConta(+valor);
+                setDinheiroNoCaixa(+valor);
+                historicoDeOperacoes.put(TipoOperacao.DEPOSITO, conta);
+                System.out.println("deposito do valor de R$:" + valor + " realizado na conta de " + cliente.getNomeCliente());
+            }
+        }
+    }
+
+    public void realizarTransferencia() throws ClienteNaoEncontradoException, ContaNaoEncontradaException, TransferenciaInvalidaException {
+        if (banco.caixasNoBanco.isEmpty()) {
+            System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
+        } else {
+            System.out.print("qual o id do cliente que deseja realizar a transferencia?");
+            int id1 = input.nextInt();
+
+            System.out.print("qual o id do cliente que ira receber a transferencia?");
+            int id2 = input.nextInt();
+
+            input.nextLine();
+
+            Cliente cliente1 = banco.clientesNoBanco.stream()
+                    .filter(a -> a.getIdCliente() == id1)
+                    .findFirst()
+                    .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel realizar a trasnferencia pois o id do cliente que iria transferir nao foi encontrado"));
+
+            Cliente cliente2 = banco.clientesNoBanco.stream()
+                    .filter(a -> a.getIdCliente() == id2)
+                    .findFirst()
+                    .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel realizar a transferencia pois o id co cliente que recebiria nao foi encontrado"));
+
+            System.out.print("qual o numero da conta de origem que vc deseja realizar a trasnferencia?");
+            String numero1 = input.nextLine();
+
+            System.out.print("qual o numero da conta que destino que vc deseja realizar a trasnferencia?");
+            String numero2 = input.nextLine();
+
+            Conta conta1 = cliente1.contasDoCliente.values().stream()
+                    .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero1))
+                    .filter(a -> a.getProprietarioConta().getIdCliente() == cliente1.getIdCliente())
+                    .filter(a -> a.getStatusConta() != StatusConta.ENCERRADA || a.getStatusConta() != StatusConta.BLOQUEADA)
+                    .findFirst()
+                    .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel realizar a trasnferencia pois nao foi encontrado o numero da conta de origem |OU|" +
+                            "o cliente fornecido nao corresponde a essa conta" +
+                            "|OU| a conta esta bloqueada ou encerrada"));
+
+            Conta conta2 = cliente2.contasDoCliente.values().stream()
+                    .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero2))
+                    .filter(a -> a.getProprietarioConta().getIdCliente() == cliente2.getIdCliente())
+                    .filter(a -> a.getStatusConta() != StatusConta.ENCERRADA || a.getStatusConta() != StatusConta.BLOQUEADA)
+                    .findFirst()
+                    .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel realizar a transferencia pois nao foi encontrado o numero da conta de destino |OU|" +
+                            "o cliente fornecido nao corresponde a essa conta" +
+                            "|OU| a conta esta bloqueada ou encerrada"));
+
+            System.out.print("qual o valor da transferencia que vc deseja realizar?");
+            double valor = input.nextDouble();
+
+            if (valor < 0 || valor > conta1.getSaldoConta() || valor > this.dinheiroNoCaixa) {
+                throw new TransferenciaInvalidaException("nao foi possivel realizar a transferencia pois o valor esta invalido pois esta negativo |OU| esta maior que o saldo da conta de origem" +
+                        "|OU| o valor esta maior que o saldo do caixa bancario, se for o caso realize a transfrencia em outro caixa eletronico");
+            } else {
+                conta1.setSaldoConta(-valor);
+                conta2.setSaldoConta(+valor);
+                setDinheiroNoCaixa(-valor);
+                System.out.println("transferencia de R$:" + valor + " enviada da conta de " + conta1.getProprietarioConta().getNomeCliente() + " para a conta de " + conta2.getProprietarioConta().getNomeCliente());
+            }
+        }
+    }
+
+    public void tirarExtrato() throws ClienteNaoEncontradoException, ContaNaoEncontradaException {
+        if (banco.caixasNoBanco.isEmpty()) {
+            System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
+        } else {
+            System.out.print("qual o id do cliente que deseja tirar o extrato?");
+            int id = input.nextInt();
+
+            input.nextLine();
+
+            Cliente cliente = banco.clientesNoBanco.stream()
+                    .filter(a -> a.getIdCliente() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel tirar o extrato pois o id do cliente nao foi encontrado?"));
+
+            System.out.print("qual o numero da conta que vc deseja tirar o extrato");
+            String numero = input.nextLine();
+
+            Conta conta = cliente.contasDoCliente.values().stream()
+                    .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
+                    .filter(a -> a.getProprietarioConta().getIdCliente() == cliente.getIdCliente())
+                    .filter(a -> a.getStatusConta() != StatusConta.ENCERRADA || a.getStatusConta() != StatusConta.BLOQUEADA)
+                    .findFirst()
+                    .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel tirar o extrato pois nao foi encontrado o numero da conta |OU|" +
+                            "o cliente fornecido nao corresponde a essa conta" +
+                            "|OU| a conta esta bloqueada ou encerrada"));
+
+            if (historicoDeOperacoes.isEmpty()) {
+                System.out.println("nao foi possivel tirar o extrato bancario, pois a conta de " + cliente.getNomeCliente().toLowerCase() + " nao realizou nenhuma operação");
+            } else {
+                if (conta.getTipoConta() == TipoConta.POUPANCA) {
+                    double saldoAtual = 0;
+                    LocalDate dataLocal = LocalDate.now();
+                    Month mes = conta.getDataCriacaoDaConta().getMonth();
+                    Month mesAtual = dataLocal.getMonth();
+
+                    if (mes != mesAtual) {
+                        saldoAtual = conta.getSaldoConta() * 0.5;
+                        System.out.println("===== EXTRATO BANCARIO DE " + cliente.getNomeCliente().toUpperCase() + " =====");
+                        for (Map.Entry<TipoOperacao, Conta> operacoes : historicoDeOperacoes.entrySet()) {
+                            System.out.println("TIPO DE OPERAÇÃO: " + operacoes.getKey());
+                            System.out.println("SALDO ATUAL: " + saldoAtual);
+                            System.out.println("---------------------");
+                        }
+                    }
+                } else {
+                    System.out.println("===== EXTRATO BANCARIO DE " + cliente.getNomeCliente().toUpperCase() + " =====");
+                    for (Map.Entry<TipoOperacao, Conta> operacoes : historicoDeOperacoes.entrySet()) {
+                        System.out.println("TIPO DE OPERAÇÃO: " + operacoes.getKey());
+                        System.out.println("SALDO ATUAL: " + operacoes.getValue().getSaldoConta());
+                        System.out.println("---------------------");
+                    }
+                }
+            }
+        }
+    }
+    public void consultarSaldo() {
+        if (banco.caixasNoBanco.isEmpty()) {
+            System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
+        } else {
+            System.out.print("qual o id do cliente que deseja consultar o saldo");
+            int id = input.nextInt();
+
+            input.nextLine();
+
+            Cliente cliente = banco.clientesNoBanco.stream()
+                    .filter(a -> a.getIdCliente() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel consultar o saldo pois o id do cliente nao foi encontrado"));
+
+
+            System.out.print("qual o numero da conta que vc deseja consultar saldo?");
+            String numero = input.nextLine();
+
+            Conta conta = cliente.contasDoCliente.values().stream()
+                    .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
+                    .filter(a -> a.getProprietarioConta().getIdCliente() == cliente.getIdCliente())
+                    .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA || a.getStatusConta() != StatusConta.ENCERRADA)
+                    .findFirst()
+                    .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel consultar saldo pois o numero da conta não foi encontrado |OU| a conta esta bloqueada ou encerrada" +
+                            "|OU| o cliente fornecido nao corresponde a essa conta"));
+
+
+            if (conta.getTipoConta() == TipoConta.POUPANCA) {
+                double saldoAtual = 0;
+                LocalDate dataLocal = LocalDate.now();
+                Month mes = conta.getDataCriacaoDaConta().getMonth();
+                Month mesAtual = dataLocal.getMonth();
+
+                if (mes != mesAtual) {
+                    saldoAtual = conta.getSaldoConta() * 0.5;
+                    mes = mesAtual;
+                    System.out.println("SALDO DA CONTA: " + saldoAtual);
+                } else {
+                    System.out.println("SALDO DA CONTA " + conta.getSaldoConta());
+                }
+            } else {
+                System.out.println("SALDO DA CONTA " + conta.getSaldoConta());
+            }
         }
     }
 }
