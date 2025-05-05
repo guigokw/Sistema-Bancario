@@ -178,6 +178,8 @@ public class CaixaEletronico {
                 conta1.setSaldoConta(-valor);
                 conta2.setSaldoConta(+valor);
                 setDinheiroNoCaixa(-valor);
+                historicoDeOperacoes.put(TipoOperacao.TRANSFERENCIA, conta1);
+                historicoDeOperacoes.put(TipoOperacao.TRANSFERENCIA, conta2);
                 System.out.println("transferencia de R$:" + valor + " enviada da conta de " + conta1.getProprietarioConta().getNomeCliente() + " para a conta de " + conta2.getProprietarioConta().getNomeCliente());
             }
         }
@@ -275,10 +277,13 @@ public class CaixaEletronico {
                     saldoAtual = conta.getSaldoConta() * 0.5;
                     mes = mesAtual;
                     System.out.println("SALDO DA CONTA: " + saldoAtual);
+                    historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta);
                 } else {
                     System.out.println("SALDO DA CONTA " + conta.getSaldoConta());
+                    historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta);
                 }
             } else {
+                historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta);
                 System.out.println("SALDO DA CONTA " + conta.getSaldoConta());
             }
         }

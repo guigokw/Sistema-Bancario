@@ -1,4 +1,7 @@
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.HashSet;
@@ -11,11 +14,12 @@ public class Cliente extends Pessoa implements ExibicaoDeDetalhes {
     Map<String, Conta> contasDoCliente = new LinkedHashMap<>();
     Set<String> numeroDaConta = new HashSet<>();
 
-    public Cliente(int idCliente, String nomeCliente, String enderecoCliente, LocalDate dataNascimentoCliente) throws IllegalArgumentException {
+    public Cliente(int idCliente, String nomeCliente, String enderecoCliente, LocalDate dataNascimentoCliente) throws IllegalArgumentException, DateTimeParseException {
         super(idCliente, nomeCliente);
-        int idade = LocalDate.now().getYear() - dataNascimentoCliente.getYear();
+
+        int idade = Period.between(dataNascimentoCliente, LocalDate.now()).getYears();
         if (enderecoCliente.isEmpty() || idade < 18) {
-            throw new IllegalArgumentException("nao foi possivel adicionar o cliente pois apresenta dados invalidos");
+            throw new IllegalArgumentException("nao foi possivel adicionar o cliente pois, o endreco esta nulo |OU| a idade do cliente é menor do que 18");
         } else {
             this.idPessoa = idCliente;
             this.nomePessoa = nomeCliente;
