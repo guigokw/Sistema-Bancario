@@ -9,16 +9,15 @@ public class Conta implements ExibicaoDeDetalhes {
     private LocalDate dataCriacaoDaConta;
 
     public Conta(Cliente proprietarioConta, String numeroConta, double saldoConta, StatusConta statusConta, TipoConta tipoConta, LocalDate dataCriacaoDaConta) throws IllegalArgumentException {
-        if (numeroConta.length() != 4 || saldoConta < 0) {
-            throw new IllegalArgumentException("nao foi possivel cadastrar conta pois os dados estao invalidos");
-        } else {
+        if (numeroConta.length() == 4 && saldoConta > 0) {
             this.proprietarioConta = proprietarioConta;
             this.numeroConta = numeroConta;
             this.saldoConta = saldoConta;
             this.statusConta = statusConta;
             this.tipoConta = tipoConta;
             this.dataCriacaoDaConta = LocalDate.now();
-
+        } else {
+            throw new IllegalArgumentException("nao foi possivel cadastrar conta pois o numero da conta nao tem 4 digitos |OU| o saldo da conta é negativo");
         }
     }
 

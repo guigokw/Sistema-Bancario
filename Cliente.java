@@ -28,6 +28,10 @@ public class Cliente extends Pessoa implements ExibicaoDeDetalhes {
         }
     }
 
+    public Map<String, Conta> getContasDoCliente() {
+        return contasDoCliente;
+    }
+
     public int getIdCliente() {
         return idPessoa;
     }

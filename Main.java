@@ -11,10 +11,12 @@ public class Main {
                 System.out.println("====== MENU ======");
                 System.out.println("[1] - entrar como funcionario");
                 System.out.println("[2] - entrar como cliente");
-                System.out.println("[3] - sair do caixa eletronico");
+                System.out.println("[3] - sair do programa");
                 System.out.println("-----------------------");
                 System.out.print("qual dessas opções vc escolhe?");
                 int opcao = input.nextInt();
+
+                input.nextLine();
 
                 switch (opcao) {
                     case 1 -> entrarComoFuncionario(input, banco);
@@ -34,80 +36,98 @@ public class Main {
     }
 
 
-    private static void entrarComoFuncionario(Scanner input, Banco banco) {
-        try {
-            System.out.println("====== SISTEMA DO BANCO ======");
-            System.out.println("[1] - adicionar funcionario");
-            System.out.println("[2] - remover funcionario");
-            System.out.println("[3] - adicionar cliente ao banco");
-            System.out.println("[4] - remover cliente do banco");
-            System.out.println("[5] - adicionar conta do cliente");
-            System.out.println("[6] - bloquear conta do cliente");
-            System.out.println("[7] - encerrar conta do cliente");
-            System.out.println("[8] - adicionar caixa eletronico");
-            System.out.println("[9] - remover caixa eletornico");
-            System.out.println("---------------------");
-            System.out.print("qual dessas opcões vc escolhe?");
-            int opcao = input.nextInt();
+    private static void entrarComoFuncionario(Scanner input, Banco banco) throws java.util.InputMismatchException, IllegalArgumentException, ClienteNaoEncontradoException, ContaNaoEncontradaException, IdDoClienteDuplicadoException, CaixaEletronicoNaoEncontradoException, CaixaDuplicadoException, ContaDuplicadaException, FuncionarioNaoEncontradoException, FuncionarioDuplicadoException, DateTimeParseException {
+        while (true) {
+            try {
+                System.out.println("====== SISTEMA DO BANCO ======");
+                System.out.println("[1] - adicionar funcionario");
+                System.out.println("[2] - remover funcionario");
+                System.out.println("[3] - adicionar cliente ao banco");
+                System.out.println("[4] - remover cliente do banco");
+                System.out.println("[5] - adicionar conta do cliente");
+                System.out.println("[6] - bloquear conta do cliente");
+                System.out.println("[7] - encerrar conta do cliente");
+                System.out.println("[8] - adicionar caixa eletronico");
+                System.out.println("[9] - remover caixa eletornico");
+                System.out.println("[10] - sair do sistema do banco");
+                System.out.println("---------------------");
+                System.out.print("qual dessas opcões vc escolhe?");
+                int opcao = input.nextInt();
 
-            input.nextLine();
+                input.nextLine();
 
-            switch (opcao) {
-                case 1 -> banco.adicionarFuncionario();
-                case 2 -> banco.removerFuncionario();
-                case 3 -> banco.adicionarCliente();
-                case 4 -> banco.removerCliente();
-                case 5 -> banco.adicionarContaDoCliente();
-                case 6 -> banco.bloquearConta();
-                case 7 -> banco.encerrarConta();
-                case 8 -> banco.adicionarCaixaEletronico();
-                case 9 -> banco.removerCaixaEletronico();
-                default -> System.out.println("opcao invalida, por favor digite novamente");
+                switch (opcao) {
+                    case 1 -> banco.adicionarFuncionario();
+                    case 2 -> banco.removerFuncionario();
+                    case 3 -> banco.adicionarCliente();
+                    case 4 -> banco.removerCliente();
+                    case 5 -> banco.adicionarContaDoCliente();
+                    case 6 -> banco.bloquearConta();
+                    case 7 -> banco.encerrarConta();
+                    case 8 -> banco.adicionarCaixaEletronico();
+                    case 9 -> banco.removerCaixaEletronico();
+                    case 10 -> {
+                        return;
+                    }
+                    default -> System.out.println("opcao invalida, por favor digite novamente");
+                }
+            } catch (IllegalArgumentException | ClienteNaoEncontradoException | ContaNaoEncontradaException |
+                     IdDoClienteDuplicadoException | CaixaEletronicoNaoEncontradoException | CaixaDuplicadoException |
+                     ContaDuplicadaException | FuncionarioNaoEncontradoException | FuncionarioDuplicadoException |
+                     DateTimeParseException e) {
+                System.out.println(e.getMessage());
+            } catch (java.util.InputMismatchException e) {
+                System.out.println("entrada invalida, por favor digite novamente");
+                input.nextLine();
             }
-        } catch (java.util.InputMismatchException e) {
-            System.out.println("entrada invalida, por favor digite novamente");
-            input.nextLine();
-        } catch (IllegalArgumentException | ClienteNaoEncontradoException | ContaNaoEncontradaException | IdDoClienteDuplicadoException | CaixaEletronicoNaoEncontradoException | CaixaDuplicadoException | ContaDuplicadaException | FuncionarioNaoEncontradoException | FuncionarioDuplicadoException | DateTimeParseException e) {
-            System.out.println(e.getMessage());
-            input.nextLine();
         }
     }
 
-    private static void entrarComoCliente(Scanner input, Banco banco) {
-        try {
-            System.out.print("qual o numero do caixa eletronico que vc deseja utilizar?");
-            int numero = input.nextInt();
 
-            CaixaEletronico caixa = banco.caixasNoBanco.values().stream()
-                    .filter(a -> a.getNumeroCaixa() == numero)
-                    .findFirst()
-                    .orElseThrow(() -> new CaixaEletronicoNaoEncontradoException("nao foi possivel realizar a operacao pois o numero do caixa eletronico fornecido nao foi encontrado no sistema"));
+    private static void entrarComoCliente(Scanner input, Banco banco) throws ClienteNaoEncontradoException, SaqueInvalidoException, ContaNaoEncontradaException, IllegalArgumentException, TransferenciaInvalidaException, CaixaEletronicoNaoEncontradoException  {
+        while (true) {
+            try {
+                System.out.print("qual o numero do caixa eletronico que vc deseja utilizar?");
+                int numero = input.nextInt();
 
-            System.out.println("====== CAIXA ELETRONICO ======");
-            System.out.println("[1] - realizar saque");
-            System.out.println("[2] - realizar deposito");
-            System.out.println("[3] - realizar transferencia");
-            System.out.println("[4] - tirar o extrato bancario");
-            System.out.println("[5] - consultar saldo");
-            System.out.println("-----------------------");
-            System.out.print("qual a opção de operação bancaria que vc deseja fazer?");
-            int opcao = input.nextInt();
+                CaixaEletronico caixa = banco.caixasNoBanco.values().stream()
+                        .filter(a -> a.getNumeroCaixa() == numero)
+                        .findFirst()
+                        .orElseThrow(() -> new CaixaEletronicoNaoEncontradoException("nao foi possivel realizar a operacao pois o numero do caixa eletronico fornecido nao foi encontrado no sistema"));
 
-            switch (opcao) {
-                case 1 -> caixa.realizarSaque();
-                case 2 -> caixa.realizarDeposito();
-                case 3 -> caixa.realizarTransferencia();
-                case 4 -> caixa.tirarExtrato();
-                case 5 -> caixa.consultarSaldo();
-                default -> System.out.println("opcao invalida, se deseja realizar alguma das operações por favor digite novamente");
+                System.out.println("====== CAIXA ELETRONICO ======");
+                System.out.println("[1] - realizar saque");
+                System.out.println("[2] - realizar deposito");
+                System.out.println("[3] - realizar transferencia");
+                System.out.println("[4] - tirar o extrato bancario");
+                System.out.println("[5] - consultar saldo");
+                System.out.println("[6] - sair do caixa eletronico");
+                System.out.println("-----------------------");
+                System.out.print("qual a opção de operação bancaria que vc deseja fazer?");
+                int opcao = input.nextInt();
+
+                input.nextLine();
+
+                switch (opcao) {
+                    case 1 -> caixa.realizarSaque(banco);
+                    case 2 -> caixa.realizarDeposito(banco);
+                    case 3 -> caixa.realizarTransferencia(banco);
+                    case 4 -> caixa.tirarExtrato(banco);
+                    case 5 -> caixa.consultarSaldo(banco);
+                    case 6 -> {
+                        return;
+                    }
+                    default ->
+                            System.out.println("opcao invalida, se deseja realizar alguma das operações por favor digite novamente");
+                }
+            } catch (ClienteNaoEncontradoException | SaqueInvalidoException | ContaNaoEncontradaException |
+                     IllegalArgumentException | TransferenciaInvalidaException |
+                     CaixaEletronicoNaoEncontradoException e) {
+                System.out.println(e.getMessage());
+            } catch (java.util.InputMismatchException e) {
+                System.out.println("entrada invalida, por favor digite novamente");
+                input.nextLine();
             }
-
-        } catch (java.util.InputMismatchException e) {
-            System.out.println("entrada invalida, por favor digite novamente");
-            input.nextLine();
-        } catch (ClienteNaoEncontradoException | SaqueInvalidoException | ContaNaoEncontradaException | IllegalArgumentException | TransferenciaInvalidaException | CaixaEletronicoNaoEncontradoException e) {
-            System.out.println(e.getMessage());
-            input.nextLine();
         }
     }
 }
