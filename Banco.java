@@ -11,6 +11,7 @@ public class Banco {
     Set<Integer> idDoFuncioanrio = new HashSet<>();
     List<Cliente> clientesNoBanco = new ArrayList<>();
     Set<Integer> idDoCliente = new HashSet<>();
+    Set<String> numeroDaConta = new HashSet<>();
     Map<Integer, CaixaEletronico> caixasNoBanco = new HashMap<>();
     Set<Integer> numeroDoCaixa = new HashSet<>();
     Scanner input = new Scanner(System.in);
@@ -23,7 +24,7 @@ public class Banco {
         return caixasNoBanco;
     }
 
-    public void adicionarFuncionario() throws java.util.InputMismatchException {
+    public void adicionarFuncionario() throws java.util.InputMismatchException, IllegalArgumentException, FuncionarioDuplicadoException {
         try {
             System.out.print("qual o id do funcionario?");
             int idFuncionario = input.nextInt();
@@ -47,13 +48,15 @@ public class Banco {
         } catch (java.util.InputMismatchException e) {
             System.out.println("entrada invalida, por favor digite novamente");
             input.nextLine();
+        } catch (IllegalArgumentException | FuncionarioDuplicadoException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    public void removerFuncionario() throws java.util.InputMismatchException {
+    public void removerFuncionario() throws java.util.InputMismatchException, FuncionarioNaoEncontradoException {
         try {
             if (listaDeFuncionarios.isEmpty()) {
-                System.out.println("nao foi possivel remover um funcionario, pois nao há nenhum regsitrado");
+                System.out.println("nao foi possivel remover um funcionario, pois nao há nenhum registrado");
             } else {
                 System.out.print("qual o id do funcionario que vc deseja remover?");
                 int id = input.nextInt();
@@ -61,7 +64,7 @@ public class Banco {
                 Funcionario funcionario = listaDeFuncionarios.stream()
                         .filter(a -> a.getIdPessoa() == id)
                         .findFirst()
-                        .orElseThrow(() -> new FuncionarioNaoEncontradoException("nao foi possivel remover o funcioanrio pois ele nao foi encontrado"));
+                        .orElseThrow(() -> new FuncionarioNaoEncontradoException("nao foi possivel remover o funcionario pois ele nao foi encontrado"));
 
                 listaDeFuncionarios.remove(funcionario);
                 idDoFuncioanrio.remove(funcionario.getIdPessoa());
@@ -70,10 +73,12 @@ public class Banco {
         } catch (java.util.InputMismatchException e) {
             System.out.println("entrada invalida, por favor digite novamente");
             input.nextLine();
+        } catch (FuncionarioNaoEncontradoException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    public void adicionarCliente() throws IdDoClienteDuplicadoException, FuncionarioNaoEncontradoException, DateTimeParseException, java.util.InputMismatchException  {
+    public void adicionarCliente() throws IdDoClienteDuplicadoException, FuncionarioNaoEncontradoException, DateTimeParseException, java.util.InputMismatchException, IllegalArgumentException  {
         try {
             if (listaDeFuncionarios.isEmpty()) {
                 System.out.println("não foi possivel adicionar um cliente ao banco, pois não há nenhum funcionario para registra-lo");
@@ -116,7 +121,7 @@ public class Banco {
         } catch (java.util.InputMismatchException e) {
             System.out.println("entrada invalida, por favor digite novamente");
             input.nextLine();
-        } catch (IdDoClienteDuplicadoException | FuncionarioNaoEncontradoException | DateTimeParseException e) {
+        } catch (IdDoClienteDuplicadoException | FuncionarioNaoEncontradoException | DateTimeParseException | IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -125,7 +130,7 @@ public class Banco {
         try {
             if (listaDeFuncionarios.isEmpty() || clientesNoBanco.isEmpty()) {
                 System.out.println("nao foi possivel remover um cliente, pois não há funcionarios registrados, para remove-lo" +
-                        "|OU| nao foi possivel remover um cliente pois não há nenhum registrado");
+                        " |OU| nao foi possivel remover um cliente pois não há nenhum registrado");
             } else {
                 System.out.print("qual o id do funcionario que ira remover o cliente?");
                 int idDoFuncionario = input.nextInt();
@@ -145,6 +150,8 @@ public class Banco {
                         .orElseThrow(() -> new ClienteNaoEncontradoException("nao foi possivel remover o cliente pois o id nao foi encontrado"));
 
                 clientesNoBanco.remove(cliente);
+                idDoCliente.remove(cliente.getIdCliente());
+                System.out.println("cliente " +cliente.getNomeCliente()+ " removido do banco");
             }
         } catch (java.util.InputMismatchException e) {
             System.out.println("entrada invalida, por favor digite novamente");
@@ -153,10 +160,10 @@ public class Banco {
             System.out.println(e.getMessage());
         }
     }
-    public void adicionarContaDoCliente() throws ClienteNaoEncontradoException, IllegalArgumentException, FuncionarioNaoEncontradoException, java.util.InputMismatchException {
+    public void adicionarContaDoCliente() throws ClienteNaoEncontradoException, IllegalArgumentException, FuncionarioNaoEncontradoException, java.util.InputMismatchException, NumeroContaDuplicadoException {
         try {
-            if (listaDeFuncionarios.isEmpty()) {
-                System.out.println("nao foi possivel realizar a operacao pois não há nenhum funcionario registrado no banco");
+            if (listaDeFuncionarios.isEmpty() || clientesNoBanco.isEmpty()) {
+                System.out.println("nao foi possivel realizar a operacao pois não há nenhum funcionario registrado no banco |OU| não há nenhum cliente registrado no banco");
             } else {
                 System.out.print("qual o id do funcionario que ira adicionar a conta do cliente?");
                 int idDoFuncionario = input.nextInt();
@@ -180,8 +187,6 @@ public class Banco {
                 System.out.print("qual o numero da conta que vc deseja definir?");
                 String numeroConta = input.nextLine();
 
-                input.nextLine();
-
                 System.out.print("qual o saldo da conta que vc deseja definir?");
                 double saldoConta = input.nextDouble();
 
@@ -198,14 +203,17 @@ public class Banco {
                             throw new IllegalArgumentException("opcao invalida, por favor se quiser realizar a operacao insira novamente");
                 };
 
-
-                Conta conta = new Conta(cliente, numeroConta.replaceAll("[^\\d]", "").strip(), saldoConta, StatusConta.ATIVA, tipoConta, LocalDate.now());
-                cliente.adicionarConta(conta);
+                if (!numeroDaConta.add(numeroConta)) {
+                    throw new NumeroContaDuplicadoException("nao foi possivel adicionar essa conta, pois o numero dela esta duplicado");
+                } else {
+                    Conta conta = new Conta(cliente, numeroConta.replaceAll("[^\\d]", "").strip(), saldoConta, StatusConta.ATIVA, tipoConta, LocalDate.now());
+                    cliente.adicionarConta(conta);
+                }
             }
         } catch (java.util.InputMismatchException e) {
             System.out.println("entrada invalida, por favor digite novamente");
             input.nextLine();
-        } catch (ClienteNaoEncontradoException | IllegalArgumentException | FuncionarioNaoEncontradoException e) {
+        } catch (ClienteNaoEncontradoException | IllegalArgumentException | FuncionarioNaoEncontradoException | NumeroContaDuplicadoException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -214,8 +222,8 @@ public class Banco {
 
     public void bloquearConta() throws ClienteNaoEncontradoException, ContaNaoEncontradaException, FuncionarioNaoEncontradoException, java.util.InputMismatchException {
         try {
-            if (listaDeFuncionarios.isEmpty()) {
-                System.out.println("nao foi possivel bloquear uma conta, pois não há nenhum funcioanrio registrado para realizar a ação");
+            if (listaDeFuncionarios.isEmpty() || clientesNoBanco.isEmpty()) {
+                System.out.println("nao foi possivel bloquear uma conta, pois não há nenhum funcioanrio registrado para realizar a ação |OU| não há clientes no banco para bloquear conta");
             } else {
                 System.out.print("qual o id do funcionario que ira bloquear a conta do cliente?");
                 int idDoFuncionario = input.nextInt();
@@ -242,10 +250,11 @@ public class Banco {
                 Conta conta = cliente.contasDoCliente.values().stream()
                         .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
                         .filter(a -> a.getProprietarioConta().getNomeCliente().equalsIgnoreCase(cliente.getNomeCliente()))
-                        .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA || a.getStatusConta() != StatusConta.ENCERRADA)
+                        .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA)
+                        .filter(a -> a.getStatusConta() != StatusConta.ENCERRADA)
                         .findFirst()
                         .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel bloquear a conta pois o numero da conta nao foi encontrado |OU| cliente fornecido nao corresponde a essa conta" +
-                                "|OU| status da conta ja esta bloqueada ou encerrada"));
+                                " |OU| status da conta ja esta bloqueada ou encerrada"));
 
                 System.out.println("====== INFORMACOES DO CLIENTE ======");
                 cliente.exibirDetalhes();
@@ -264,7 +273,7 @@ public class Banco {
                         System.out.println("conta " + conta.getTipoConta() + " de " + conta.getProprietarioConta().getNomeCliente() + " foi bloqueada");
                         break;
                     case 2:
-                        System.out.println("se deseja bloquear a conta de um outro ususario, por favor faça a operação novamente");
+                        System.out.println("se deseja bloquear a conta de um outro usuario, por favor faça a operação novamente");
                         break;
                     default:
                         System.out.println("opcao invalida, por favor digite novamente");
@@ -280,10 +289,9 @@ public class Banco {
 
     public void encerrarConta() throws ClienteNaoEncontradoException, ContaNaoEncontradaException, FuncionarioNaoEncontradoException, java.util.InputMismatchException {
         try {
-            if (listaDeFuncionarios.isEmpty()) {
-                System.out.println("nao foi possivel encerrar uma conta, pois não há nenhum funcioanrio registrado para realizar a ação");
+            if (listaDeFuncionarios.isEmpty() || clientesNoBanco.isEmpty()) {
+                System.out.println("nao foi possivel encerrar uma conta, pois não há nenhum funcioanrio registrado para realizar a ação |OU| não há clientes no banco para encerrar a conta");
             } else {
-
                 System.out.print("qual o id do funcionario que ira encerrar a conta do cliente?");
                 int idDoFuncionario = input.nextInt();
 
@@ -308,10 +316,11 @@ public class Banco {
                 Conta conta = cliente.contasDoCliente.values().stream()
                         .filter(a -> a.getNumeroConta().equalsIgnoreCase(numero))
                         .filter(a -> a.getProprietarioConta().getNomeCliente().equalsIgnoreCase(cliente.getNomeCliente()))
-                        .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA || a.getStatusConta() != StatusConta.ENCERRADA)
+                        .filter(a -> a.getStatusConta() != StatusConta.BLOQUEADA)
+                        .filter(a -> a.getStatusConta() != StatusConta.ENCERRADA)
                         .findFirst()
                         .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel encerrar a conta pois o numero da conta nao foi encontrado |OU| cliente fornecido nao corresponde a essa conta" +
-                                "|OU| a conta ja esta bloqueada ou encerrada"));
+                                " |OU| a conta ja esta bloqueada ou encerrada"));
 
                 System.out.println("====== INFORMACOES DO CLIENTE ======");
                 cliente.exibirDetalhes();
@@ -350,7 +359,6 @@ public class Banco {
             if (listaDeFuncionarios.isEmpty()) {
                 System.out.println("nao foi possivel adicionar o caixa eletronico, pois não há nenhum funcioanrio registrado para realizar a ação");
             } else {
-
                 System.out.print("qual o id do funcionario que ira adicionar um caixa eletronico?");
                 int idDoFuncionario = input.nextInt();
 
@@ -368,7 +376,7 @@ public class Banco {
                 CaixaEletronico caixa = new CaixaEletronico(numeroCaixa, dinheiroNoCaixa);
 
                 if (!numeroDoCaixa.add(caixa.getNumeroCaixa())) {
-                    throw new CaixaDuplicadoException("nao foi possivel adicionar o caixa eletronico ao banco pois o numero do esta duplicado");
+                    throw new CaixaDuplicadoException("nao foi possivel adicionar o caixa eletronico ao banco pois o numero do caixa esta duplicado");
                 } else {
                     caixasNoBanco.put(caixa.getNumeroCaixa(), caixa);
                     System.out.println("caixa numero " + caixa.getNumeroCaixa() + " adicionado ao banco");
@@ -386,9 +394,9 @@ public class Banco {
         try {
             if (listaDeFuncionarios.isEmpty() || caixasNoBanco.isEmpty()) {
                 System.out.println("nao foi possivel remover o caixa do banco, pois não há nenhum funcioanrio registrado para realizar a ação" +
-                        "|OU| não há nenhum caixa registrado para remover");
+                        " |OU| não há nenhum caixa registrado para remover");
             } else {
-                System.out.print("qual o id do funcionario que ira encerrar a conta do cliente?");
+                System.out.print("qual o id do funcionario que ira remover um caixa eletronico?");
                 int idDoFuncionario = input.nextInt();
 
                 listaDeFuncionarios.stream()
@@ -405,6 +413,7 @@ public class Banco {
                         .orElseThrow(() -> new CaixaEletronicoNaoEncontradoException("nao foi possivel remover o caixa eletronico pois o numero do caixa nao foi encontardo"));
 
                 caixasNoBanco.remove(caixa.getNumeroCaixa(), caixa);
+                numeroDoCaixa.remove(caixa.getNumeroCaixa());
                 System.out.println("caixa numero " + caixa.getNumeroCaixa() + " removido do banco");
             }
         } catch (java.util.InputMismatchException e) {
