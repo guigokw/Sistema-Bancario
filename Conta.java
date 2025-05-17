@@ -1,4 +1,6 @@
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Conta implements ExibicaoDeDetalhes {
     private Cliente proprietarioConta;
@@ -7,6 +9,8 @@ public class Conta implements ExibicaoDeDetalhes {
     private StatusConta statusConta;
     private TipoConta tipoConta;
     private LocalDate dataCriacaoDaConta;
+
+    Map<TipoOperacao, Double> historicoDeOperacoes = new LinkedHashMap<>();
 
     public Conta(Cliente proprietarioConta, String numeroConta, double saldoConta, StatusConta statusConta, TipoConta tipoConta, LocalDate dataCriacaoDaConta) throws IllegalArgumentException {
         if (numeroConta.length() == 4 && saldoConta > 0) {

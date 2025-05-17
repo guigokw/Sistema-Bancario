@@ -12,8 +12,6 @@ public class CaixaEletronico {
     private double dinheiroNoCaixa;
 
     Scanner input = new Scanner(System.in);
-    Map<TipoOperacao, Conta> historicoDeOperacoes = new LinkedHashMap<>();
-    List<Double> valoresOperacao = new ArrayList<>();
 
     public CaixaEletronico(int numeroCaixa, double dinheiroNoCaixa) throws IllegalArgumentException {
         if (dinheiroNoCaixa < 0 || numeroCaixa < 0) {
@@ -24,9 +22,6 @@ public class CaixaEletronico {
         }
     }
 
-    public List<Double> getValoresOperacao() {
-        return valoresOperacao;
-    }
 
     public int getNumeroCaixa() {
         return numeroCaixa;
@@ -85,15 +80,15 @@ public class CaixaEletronico {
                 } else {
                     conta.setSaldoConta(conta.getSaldoConta() - valor);
                     setDinheiroNoCaixa(this.dinheiroNoCaixa - valor);
-                    historicoDeOperacoes.put(TipoOperacao.SAQUE, conta);
-                    valoresOperacao.add(valor);
+                    conta.historicoDeOperacoes.put(TipoOperacao.SAQUE, valor);
                     System.out.println("saque de R$:" + valor + " da conta de " + conta.getProprietarioConta().getNomeCliente() + " realizado");
                 }
             }
         } catch (java.util.InputMismatchException e) {
             System.out.println("entrada invalida, por favor digite novamente");
             input.nextLine();
-        } catch ( ClienteNaoEncontradoException | ContaNaoEncontradaException | SaqueInvalidoException | IllegalArgumentException e) {
+        } catch (ClienteNaoEncontradoException | ContaNaoEncontradaException | SaqueInvalidoException |
+                 IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -134,8 +129,7 @@ public class CaixaEletronico {
                 } else {
                     conta.setSaldoConta(conta.getSaldoConta() + valor);
                     setDinheiroNoCaixa(this.dinheiroNoCaixa + valor);
-                    historicoDeOperacoes.put(TipoOperacao.DEPOSITO, conta);
-                    valoresOperacao.add(valor);
+                    conta.historicoDeOperacoes.put(TipoOperacao.DEPOSITO, valor);
                     System.out.println("deposito do valor de R$:" + valor + " realizado na conta de " + cliente.getNomeCliente());
                 }
             }
@@ -147,7 +141,7 @@ public class CaixaEletronico {
         }
     }
 
-    public void realizarTransferencia(Banco banco) throws ClienteNaoEncontradoException, ContaNaoEncontradaException, TransferenciaInvalidaException, java.util.InputMismatchException  {
+    public void realizarTransferencia(Banco banco) throws ClienteNaoEncontradoException, ContaNaoEncontradaException, TransferenciaInvalidaException, java.util.InputMismatchException {
         try {
             if (banco.getCaixasNoBanco().isEmpty()) {
                 System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
@@ -206,9 +200,8 @@ public class CaixaEletronico {
                     conta1.setSaldoConta(conta1.getSaldoConta() - valor);
                     conta2.setSaldoConta(conta2.getSaldoConta() + valor);
                     setDinheiroNoCaixa(this.dinheiroNoCaixa - valor);
-                    historicoDeOperacoes.put(TipoOperacao.TRANSFERENCIA, conta1);
-                    historicoDeOperacoes.put(TipoOperacao.TRANSFERENCIA, conta2);
-                    valoresOperacao.add(valor);
+                    conta1.historicoDeOperacoes.put(TipoOperacao.TRANSFERENCIA, valor);
+                    conta2.historicoDeOperacoes.put(TipoOperacao.TRANSFERENCIA, valor);
                     System.out.println("transferencia de R$:" + valor + " enviada da conta de " + conta1.getProprietarioConta().getNomeCliente() + " para a conta de " + conta2.getProprietarioConta().getNomeCliente());
                 }
             }
@@ -220,7 +213,7 @@ public class CaixaEletronico {
         }
     }
 
-    public void tirarExtrato(Banco banco) throws ClienteNaoEncontradoException, ContaNaoEncontradaException, java.util.InputMismatchException  {
+    public void tirarExtrato(Banco banco) throws ClienteNaoEncontradoException, ContaNaoEncontradaException, java.util.InputMismatchException {
         try {
             if (banco.getCaixasNoBanco().isEmpty()) {
                 System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
@@ -246,22 +239,19 @@ public class CaixaEletronico {
                         .findFirst()
                         .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel tirar o extrato pois nao foi encontrado o numero da conta |OU|" +
                                 "o cliente fornecido nao corresponde a essa conta" +
-                                "|OU| a conta esta bloqueada ou encerrada"));
+                                " |OU| a conta esta bloqueada ou encerrada"));
 
-                List<Double> valores = valoresOperacao.stream()
-                        .sorted()
-                        .toList();
 
-                if (historicoDeOperacoes.isEmpty()) {
+                if (conta.historicoDeOperacoes.isEmpty()) {
                     System.out.println("nao foi possivel tirar o extrato bancario, pois a conta de " + cliente.getNomeCliente().toLowerCase() + " nao realizou nenhuma operação");
                 } else {
                     System.out.println("===== EXTRATO BANCARIO DE " + cliente.getNomeCliente().toUpperCase() + " =====");
-                    for (Map.Entry<TipoOperacao, Conta> operacoes : historicoDeOperacoes.entrySet()) {
-                            System.out.println("TIPO DE OPERAÇÃO: " + operacoes.getKey());
-                            System.out.println("SALDO: " +valores);
-                            System.out.println("---------------------");
+                    for (Map.Entry<TipoOperacao, Double> operacoes : conta.historicoDeOperacoes.entrySet()) {
+                        System.out.println("TIPO DE OPERAÇÃO: " + operacoes.getKey().name());
+                        System.out.println("VALOR: " +operacoes.getValue());
+                        System.out.println("---------------------");
                     }
-                    System.out.println("SALDO ATUAL: " +conta.getSaldoConta());
+                    System.out.println("SALDO ATUAL: " + conta.getSaldoConta());
 
 
                 }
@@ -274,7 +264,8 @@ public class CaixaEletronico {
             System.out.println(e.getMessage());
         }
     }
-    public void consultarSaldo(Banco banco) throws ClienteNaoEncontradoException, ContaNaoEncontradaException, java.util.InputMismatchException  {
+
+    public void consultarSaldo(Banco banco) throws ClienteNaoEncontradoException, ContaNaoEncontradaException, java.util.InputMismatchException {
         try {
             if (banco.getCaixasNoBanco().isEmpty()) {
                 System.out.println("nao foi possivel realizar a operacao pois nao há caixas eletronicos no banco");
@@ -302,7 +293,6 @@ public class CaixaEletronico {
                         .orElseThrow(() -> new ContaNaoEncontradaException("nao foi possivel consultar saldo pois o numero da conta não foi encontrado |OU| a conta esta bloqueada ou encerrada" +
                                 "|OU| o cliente fornecido nao corresponde a essa conta"));
 
-
                 if (conta.getTipoConta() == TipoConta.POUPANCA) {
                     double saldoAtual = 0;
                     LocalDate dataLocal = LocalDate.now();
@@ -312,13 +302,13 @@ public class CaixaEletronico {
                     if (mes != mesAtual) {
                         saldoAtual = conta.getSaldoConta() * 0.5;
                         System.out.println("SALDO DA CONTA: " + saldoAtual);
-                        historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta);
+                        conta.historicoDeOperacoes.put(TipoOperacao.CONSULTA, saldoAtual);
                     } else {
                         System.out.println("SALDO DA CONTA " + conta.getSaldoConta());
-                        historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta);
+                        conta.historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta.getSaldoConta());
                     }
                 } else {
-                    historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta);
+                    conta.historicoDeOperacoes.put(TipoOperacao.CONSULTA, conta.getSaldoConta());
                     System.out.println("SALDO DA CONTA " + conta.getSaldoConta());
                 }
             }

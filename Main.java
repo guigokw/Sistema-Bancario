@@ -55,15 +55,15 @@ public class Main {
             input.nextLine();
 
             switch (opcao) {
-                case 1 -> banco.adicionarFuncionario(); // excecoes conferem
-                case 2 -> banco.removerFuncionario(); // excecoes conferem
-                case 3 -> banco.adicionarCliente(); // excecoes conferem
-                case 4 -> banco.removerCliente(); // excecoes conferem
-                case 5 -> banco.adicionarContaDoCliente(); // excecoes conferem
-                case 6 -> banco.bloquearConta(); // excecoes conferem
-                case 7 -> banco.encerrarConta(); // excecoes conferem
-                case 8 -> banco.adicionarCaixaEletronico(); // excecoes conferem
-                case 9 -> banco.removerCaixaEletronico(); // excecoes conferem
+                case 1 -> banco.adicionarFuncionario();
+                case 2 -> banco.removerFuncionario();
+                case 3 -> banco.adicionarCliente();
+                case 4 -> banco.removerCliente();
+                case 5 -> banco.adicionarContaDoCliente();
+                case 6 -> banco.bloquearConta();
+                case 7 -> banco.encerrarConta();
+                case 8 -> banco.adicionarCaixaEletronico();
+                case 9 -> banco.removerCaixaEletronico();
                 default -> System.out.println("opcao invalida, por favor digite novamente");
             }
         } catch (IllegalArgumentException | ClienteNaoEncontradoException | ContaNaoEncontradaException |
@@ -100,11 +100,11 @@ public class Main {
             input.nextLine();
 
             switch (opcao) {
-                case 1 -> caixa.realizarSaque(banco); // excecoes conferem
-                case 2 -> caixa.realizarDeposito(banco); // excecoes conferem
-                case 3 -> caixa.realizarTransferencia(banco); // excecoes conferem
+                case 1 -> caixa.realizarSaque(banco);
+                case 2 -> caixa.realizarDeposito(banco);
+                case 3 -> caixa.realizarTransferencia(banco);
                 case 4 -> caixa.tirarExtrato(banco);
-                case 5 -> caixa.consultarSaldo(banco); // excecoes conferem
+                case 5 -> caixa.consultarSaldo(banco);
                 default -> System.out.println("opcao invalida, se deseja realizar alguma das operações por favor digite novamente");
             }
         } catch (ClienteNaoEncontradoException | SaqueInvalidoException | ContaNaoEncontradaException |
