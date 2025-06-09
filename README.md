@@ -64,3 +64,6 @@ Desenvolvido com 💻 e ☕ por Luiz guilherme carvalho ribeiro
 
 🔗 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/luiz-guilherme-carvalho-ribeiro-12032829b/) • 🐙 
 https://github.com/guigokw
+
+![image](https://github.com/user-attachments/assets/cd95a2be-4004-4c20-bbbb-f7637ffe56ae)
+
