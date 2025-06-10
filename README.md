@@ -1,10 +1,10 @@
-## Sistema de Gestão de banco
+## 🏦 Sistema de Gestão Bancária
 
 sistema para gerenciar um banco com clientes e funcionarios, permitindo que clientes façam operacoes bancarias e funcionarios administrem o sistema do banco
 
 ---
 
-## indice
+## 📌 indice
 
 - [sobre-o-projeto](#sobre-o-projeto)
 - [funcionalidades](#funcionalidades)
@@ -14,14 +14,14 @@ sistema para gerenciar um banco com clientes e funcionarios, permitindo que clie
 
 ---
 
-  ## sobre-o-projeto
+  ## 🔎 sobre-o-projeto
   
 Sistema feito em java com o objetivo de simular uma gestão de um banco. Tanto pelos funcionarios onde eles fazem novos cadastros, inserem clientes e relacionam contas,
 e tanto pelos clientes que utilizam o caixa eletronico para realizar operações bancarias como saque, transferencia e deposito.
 
 ---
 
-## funcionalidades
+## ⚙️ funcionalidades
 
 - cadastro de funcionarios, clientes e contas
 - operações bancarias
@@ -32,9 +32,9 @@ e tanto pelos clientes que utilizam o caixa eletronico para realizar operações
 
   ---
 
-  ## tecnologias-utilizadas
+  ## 💡 tecnologias-utilizadas
 
-  - **Java 17+**
+- **Java 17+**
 - **Paradigma Orientado a Objetos (POO)**
 - **Coleções Java (List, Map, Stream API)**
 - **Tratamento de Exceções Personalizadas**
@@ -42,7 +42,7 @@ e tanto pelos clientes que utilizam o caixa eletronico para realizar operações
 
   ---
 
-## como-executar
+## 🪛 como-executar
 
 1. **Clone o repositório:**
    ```bash
@@ -55,7 +55,7 @@ e tanto pelos clientes que utilizam o caixa eletronico para realizar operações
 
    ---
 
-   ##  Licença
+   ## 🧾 Licença
 Este projeto está sob a licença MIT.
 Sinta-se livre para usar, modificar e distribuir conforme os termos da licença.
 
